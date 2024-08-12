@@ -1,19 +1,17 @@
 plugins {
     id 'java'
+    id 'git-tag-plugin'
 }
 
 group = 'ru.clevertec'
 version = '1.0-SNAPSHOT'
 
+pushTag {
+    checkUncommitted = true
+}
+
 repositories {
     mavenCentral()
 }
 
-dependencies {
-    testImplementation platform('org.junit:junit-bom:5.10.0')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-}
-
-test {
-    useJUnitPlatform()
-}
+build.finalizedBy pushTag
