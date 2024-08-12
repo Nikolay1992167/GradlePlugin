@@ -27,21 +27,29 @@ class GitRepositoryImpl implements GitRepository {
 
     @Override
     String findLatestTagVersion() {
-        CommandBuilder.builder()
+        def result = CommandBuilder.builder()
                 .git()
                 .describe()
                 .tags()
                 .abbrev(0)
                 .execute()
+        if (result.contains("fatal:")) {
+            return ""
+        }
+        return result
     }
 
     @Override
     String findCurrentTagVersion() {
-        CommandBuilder.builder()
+        def result = CommandBuilder.builder()
                 .git()
                 .describe()
                 .tags()
                 .execute()
+        if (result.contains("fatal:")) {
+            return ""
+        }
+        return result
     }
 
     @Override
