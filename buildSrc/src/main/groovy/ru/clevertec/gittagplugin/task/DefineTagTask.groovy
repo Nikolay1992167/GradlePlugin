@@ -22,6 +22,7 @@ class DefineTagTask extends DefaultTask {
             println "Tag is not exist!"
             project.extensions.add('tag', "")
         } else {
+            println tagVersion
             project.extensions.add('tag', tagVersion)
         }
     }
