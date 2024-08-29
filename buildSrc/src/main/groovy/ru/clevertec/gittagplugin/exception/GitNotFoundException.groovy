@@ -5,5 +5,4 @@ class GitNotFoundException extends RuntimeException {
     GitNotFoundException(String message) {
         super(message)
     }
-
 }
