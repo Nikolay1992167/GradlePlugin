@@ -10,6 +10,7 @@ class NoTagService {
 
     static String createTagName(String branchName, String latestTagVersion) {
         latestTagVersion = DEFAULT_TAG_VERSION
+        println 'I am here'
         switch (branchName) {
             case Branch.DEV.getName():
                 latestTagVersion
