@@ -30,7 +30,7 @@ class DefineTagTask extends DefaultTask {
     private String findCurrentTagVersion() {
         def execOutput = new ByteArrayOutputStream()
         def result = project.exec {
-            commandLine 'git', 'describe', '--tags'
+            commandLine 'git', 'describe', '--exact-match', '--tags'
             standardOutput = execOutput
             errorOutput = errorOutput
             ignoreExitValue = true
