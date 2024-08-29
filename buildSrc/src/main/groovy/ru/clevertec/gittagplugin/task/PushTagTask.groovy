@@ -5,6 +5,7 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 import ru.clevertec.gittagplugin.factory.impl.ExistTagService
 import ru.clevertec.gittagplugin.factory.impl.NoTagService
+import ru.clevertec.gittagplugin.model.Branch
 
 class PushTagTask extends DefaultTask {
 
@@ -16,23 +17,40 @@ class PushTagTask extends DefaultTask {
 
     @TaskAction
     void pushTag() {
-//        def latestTagVersion = findLatestTagVersion()
         def branchName = findCurrentBranchName()
         println branchName
-        def tagFromTask = project.extensions.getByName('tag').toString()
-        if (tagFromTask.empty) {
+        def tagFromDefineTagTask = project.extensions.getByName('tag').toString()
+        if (tagFromDefineTagTask.empty) {
             def latestTagVersion = findLatestTagsInBranch(branchName)
             if (latestTagVersion.empty) {
                 def tagTitle = noTagService.createTagName(branchName, latestTagVersion)
                 pushTagToLocal(tagTitle)
                 pushTagToOrigin(tagTitle)
             } else {
-                existTagService.createTagName(branchName, latestTagVersion)
+                updateMajorVersionIfNotMaster(branchName, latestTagVersion)
+                def tagTitle = existTagService.createTagName(branchName, latestTagVersion)
+                pushTagToLocal(tagTitle)
+                pushTagToOrigin(tagTitle)
             }
         } else {
-            println tagFromTask
+            println tagFromDefineTagTask
         }
+    }
 
+    private void updateMajorVersionIfNotMaster(String branchName, String latestTagVersion) {
+        if (branchName != Branch.MASTER.toString()) {
+            def lastTagMaster = findLatestTagsInBranch(Branch.MASTER.toString())
+            def majorVersion = findMajorVersion(lastTagMaster)
+            setMajorVersion(latestTagVersion, majorVersion)
+        }
+    }
+
+    private static void setMajorVersion(String tag, String majorVersion) {
+        tag.replaceAll("v\\d+", "v" + majorVersion);
+    }
+
+    private static String findMajorVersion(String latestTagVersion) {
+        return latestTagVersion.replaceAll("v(\\d+)\\.\\d+", "1");
     }
 
     void pushTagToLocal(String tagTitle) {
@@ -74,38 +92,4 @@ class PushTagTask extends DefaultTask {
         }
         return execOutput.toString()
     }
-
-    String findLatestTagVersion() {
-        def execOutput = new ByteArrayOutputStream()
-        def result = project.exec {
-            commandLine 'git', 'describe', '--tags', '--abbrev=0'
-            standardOutput = execOutput
-            errorOutput = errorOutput
-            ignoreExitValue = true
-        }
-        if (result.exitValue != 0) {
-            return ""
-        }
-        return execOutput.toString()
-    }
-
-
-//        if (latestTagVersion.isEmpty()) {
-//            def tagName = noTagExistsFactory.createTagName(branchName, latestTagVersion)
-//            gitRepository.pushTagToLocal(tagName)
-//            gitRepository.pushTagToOrigin(tagName)
-//            logger.warn "The current commit is assigned tag $tagName"
-//            return
-//        }
-//        def currentTagVersion = gitRepository.findCurrentTagVersion()
-//        if (!latestTagVersion.isEmpty()
-//                && !currentTagVersion.isEmpty()
-//                && latestTagVersion == currentTagVersion) {
-//            throw new TagAlreadyException("The current state of the project is already tagged $currentTagVersion by git")
-//        } else {
-//            def tagName = tagExistsFactory.createTagName(branchName, latestTagVersion)
-//            gitRepository.pushTagToLocal(tagName)
-//            gitRepository.pushTagToOrigin(tagName)
-//            logger.warn "The current commit is assigned tag $tagName"
-//        }
 }
