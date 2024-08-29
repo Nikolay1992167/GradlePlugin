@@ -1,14 +1,14 @@
 package ru.clevertec.gittagplugin.factory.impl
 
-import ru.clevertec.gittagplugin.factory.TagFactory
 import ru.clevertec.gittagplugin.model.Branch
 
-import static ru.clevertec.gittagplugin.util.Constants.*
+import static ru.clevertec.gittagplugin.util.Constants.DEFAULT_TAG_VERSION
+import static ru.clevertec.gittagplugin.util.Constants.RC
+import static ru.clevertec.gittagplugin.util.Constants.SNAPSHOT
 
-class NoTagExistsFactory implements TagFactory {
+class NoTagService {
 
-    @Override
-    String createTagName(String branchName, String latestTagVersion) {
+    static String createTagName(String branchName, String latestTagVersion) {
         latestTagVersion = DEFAULT_TAG_VERSION
         switch (branchName) {
             case Branch.DEV.getName():

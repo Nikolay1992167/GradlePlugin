@@ -1,4 +1,4 @@
-package ru.clevertec.gittagplugin.model
+package ru.clevertec.gittagplugin.extension
 
 class PushTagExtension {
 

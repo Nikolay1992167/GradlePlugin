@@ -9,23 +9,23 @@ import static ru.clevertec.gittagplugin.util.Constants.SNAPSHOT
 
 class GitRepositoryImpl implements GitRepository {
 
-    @Override
-    String findGitVersion() {
-        CommandBuilder.builder()
-                .git()
-                .version()
-                .execute()
-    }
+//    @Override
+//    String findGitVersion() {
+//        CommandBuilder.builder()
+//                .git()
+//                .version()
+//                .execute()
+//    }
 
-    @Override
-    String findUncommittedChanges() {
-        CommandBuilder.builder()
-                .git()
-                .diff()
-                .execute()
-    }
+//    @Override
+//    String findUncommittedChanges() {
+//        CommandBuilder.builder()
+//                .git()
+//                .diff()
+//                .execute()
+//    }
 
-    @Override
+
     String findLatestTagVersion() {
         def result = CommandBuilder.builder()
                 .git()
@@ -39,7 +39,6 @@ class GitRepositoryImpl implements GitRepository {
         return result
     }
 
-    @Override
     String findCurrentTagVersion() {
         def result = CommandBuilder.builder()
                 .git()
@@ -52,7 +51,7 @@ class GitRepositoryImpl implements GitRepository {
         return result
     }
 
-    @Override
+
     String findCurrentBranchName() {
         CommandBuilder.builder()
                 .git()

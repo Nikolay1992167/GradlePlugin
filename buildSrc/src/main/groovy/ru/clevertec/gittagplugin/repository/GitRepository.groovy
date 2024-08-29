@@ -2,15 +2,15 @@ package ru.clevertec.gittagplugin.repository
 
 interface GitRepository {
 
-    String findGitVersion()
+//    String findGitVersion()
 
-    String findUncommittedChanges()
-
-    String findLatestTagVersion()
-
-    String findCurrentTagVersion()
-
-    String findCurrentBranchName()
+//    String findUncommittedChanges()
+//
+//    String findLatestTagVersion()
+//
+//    String findCurrentTagVersion()
+//
+//    String findCurrentBranchName()
 
     String findLatestDevAndQATagByTagVersion(String tagVersion)
 
