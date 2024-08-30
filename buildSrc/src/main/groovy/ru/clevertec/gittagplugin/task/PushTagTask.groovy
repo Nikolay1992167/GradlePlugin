@@ -7,6 +7,9 @@ import ru.clevertec.gittagplugin.model.Branch
 import ru.clevertec.gittagplugin.service.ExistTagService
 import ru.clevertec.gittagplugin.service.NoTagService
 
+import java.util.regex.Matcher
+import java.util.regex.Pattern
+
 import static ru.clevertec.gittagplugin.util.Constants.*
 
 class PushTagTask extends DefaultTask {
@@ -36,27 +39,64 @@ class PushTagTask extends DefaultTask {
             pushTagToLocal(tagTitle)
             pushTagToOrigin(tagTitle)
         } else {
-            updateMajorVersionIfNotMaster(branchName, latestTagVersion)
-            def tagTitle = existTagService.createTagName(branchName, latestTagVersion)
+            def fixedTag = updateMajorVersionIfNotMaster(branchName, latestTagVersion)
+            def tagTitle = existTagService.createTagName(branchName, fixedTag)
             pushTagToLocal(tagTitle)
             pushTagToOrigin(tagTitle)
         }
     }
 
-    private void updateMajorVersionIfNotMaster(String branchName, String latestTagVersion) {
+    private String updateMajorVersionIfNotMaster(String branchName, String latestTagVersion) {
         if (branchName != Branch.MASTER.toString()) {
-            def lastTagMaster = findLatestTagsInBranch(Branch.MASTER.toString())
-            def majorVersion = findMajorVersion(lastTagMaster)
-            setMajorVersion(latestTagVersion, majorVersion)
+            def lastTagMaster = findLatestTagMajorVersion()
+            def majorVersion = extractMajorVersion(lastTagMaster)
+            return setMajorVersion(latestTagVersion, majorVersion)
         }
+        return latestTagVersion
     }
 
-    private static void setMajorVersion(String tag, String majorVersion) {
-        tag.replaceAll("v\\d+", "v" + majorVersion);
+    private String findLatestTagMajorVersion() {
+        List<String> tags = findGitTags()
+
+        int maxMajorVersion = -1;
+        String latestTag = "";
+
+        for (String tag : tags) {
+            int majorVersion = extractMajorVersion(tag);
+            if (majorVersion > maxMajorVersion) {
+                maxMajorVersion = majorVersion;
+                latestTag = tag;
+            }
+        }
+
+        return latestTag;
     }
 
-    private static String findMajorVersion(String latestTagVersion) {
-        return latestTagVersion.replaceAll("v(\\d+)\\.\\d+", "1");
+    private List<String> findGitTags() {
+        def execOutput = new ByteArrayOutputStream()
+        def result = project.exec {
+            commandLine GIT, TAG
+            standardOutput = execOutput
+            errorOutput = new ByteArrayOutputStream()
+            ignoreExitValue = true
+        }
+        if (result.exitValue != 0) {
+            return Collections.emptyList()
+        }
+        return execOutput.toString().trim().split('\n').toList()
+    }
+
+    private static int extractMajorVersion(String tag) {
+        Pattern pattern = Pattern.compile("v(\\d+)\\.\\d+");
+        Matcher matcher = pattern.matcher(tag);
+        if (matcher.matches()) {
+            return Integer.parseInt(matcher.group(1));
+        }
+        return -1;
+    }
+
+    private static String setMajorVersion(String tag, Integer majorVersion) {
+        return tag.replaceAll("v\\d+\\.\\d+", "v" + majorVersion + ".0");
     }
 
     private void pushTagToLocal(String tagTitle) {
