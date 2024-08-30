@@ -111,7 +111,7 @@ class PushTagTask extends DefaultTask {
         if (matcher.matches()) {
             return Integer.parseInt(matcher.group(1));
         }
-        return -1;
+        return 0;
     }
 
     private static String setMajorVersion(String tag, Integer majorVersion) {
