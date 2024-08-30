@@ -1,4 +1,4 @@
-package ru.clevertec.gittagplugin.factory.impl
+package ru.clevertec.gittagplugin.service
 
 import ru.clevertec.gittagplugin.model.Branch
 
@@ -7,15 +7,13 @@ import static ru.clevertec.gittagplugin.util.Constants.SNAPSHOT
 
 class ExistTagService {
 
-    String createTagName(String branchName, String latestTagVersion) {
+    static String createTagName(String branchName, String latestTagVersion) {
         switch (branchName) {
             case Branch.DEV.getName():
-//                latestTagVersion = gitRepository.findLatestDevAndQATagByTagVersion(latestTagVersion)
                 def tagNumbers = findAndSplitTagVersionByDot(latestTagVersion)
                 incrementMinorVersion(tagNumbers)
                 break
             case Branch.QA.getName():
-//                latestTagVersion = gitRepository.findLatestDevAndQATagByTagVersion(latestTagVersion)
                 def tagNumbers = findAndSplitTagVersionByDot(latestTagVersion)
                 incrementMinorVersion(tagNumbers)
                 break
@@ -28,7 +26,6 @@ class ExistTagService {
                 incrementMajorVersion(tagNumbers)
                 break
             default:
-//                latestTagVersion = gitRepository.findLatestSnapshotTagByTagVersion(latestTagVersion)
                 def tagNumbers = findAndSplitTagVersionByDot(latestTagVersion)
                 addSnapshotPostfix(tagNumbers)
                 break

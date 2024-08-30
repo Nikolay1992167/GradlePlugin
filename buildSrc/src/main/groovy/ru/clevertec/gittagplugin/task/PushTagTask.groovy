@@ -3,9 +3,11 @@ package ru.clevertec.gittagplugin.task
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
-import ru.clevertec.gittagplugin.factory.impl.ExistTagService
-import ru.clevertec.gittagplugin.factory.impl.NoTagService
 import ru.clevertec.gittagplugin.model.Branch
+import ru.clevertec.gittagplugin.service.ExistTagService
+import ru.clevertec.gittagplugin.service.NoTagService
+
+import static ru.clevertec.gittagplugin.util.Constants.*
 
 class PushTagTask extends DefaultTask {
 
@@ -18,22 +20,26 @@ class PushTagTask extends DefaultTask {
     @TaskAction
     void pushTag() {
         def branchName = findCurrentBranchName()
-        println branchName
-        def tagFromDefineTagTask = project.extensions.getByName('tag').toString()
+        def tagFromDefineTagTask = project.extensions.getByName(TAG).toString()
+
         if (tagFromDefineTagTask.empty) {
             def latestTagVersion = findLatestTagsInBranch(branchName)
-            if (latestTagVersion.empty) {
-                def tagTitle = noTagService.createTagName(branchName, latestTagVersion)
-                pushTagToLocal(tagTitle)
-                pushTagToOrigin(tagTitle)
-            } else {
-                updateMajorVersionIfNotMaster(branchName, latestTagVersion)
-                def tagTitle = existTagService.createTagName(branchName, latestTagVersion)
-                pushTagToLocal(tagTitle)
-                pushTagToOrigin(tagTitle)
-            }
+            handleTag(branchName, latestTagVersion)
         } else {
-            println tagFromDefineTagTask
+            print tagFromDefineTagTask
+        }
+    }
+
+    private void handleTag(String branchName, String latestTagVersion) {
+        if (latestTagVersion.empty) {
+            def tagTitle = noTagService.createTagName(branchName, latestTagVersion)
+            pushTagToLocal(tagTitle)
+            pushTagToOrigin(tagTitle)
+        } else {
+            updateMajorVersionIfNotMaster(branchName, latestTagVersion)
+            def tagTitle = existTagService.createTagName(branchName, latestTagVersion)
+            pushTagToLocal(tagTitle)
+            pushTagToOrigin(tagTitle)
         }
     }
 
@@ -53,29 +59,29 @@ class PushTagTask extends DefaultTask {
         return latestTagVersion.replaceAll("v(\\d+)\\.\\d+", "1");
     }
 
-    void pushTagToLocal(String tagTitle) {
+    private void pushTagToLocal(String tagTitle) {
         def execOutput = new ByteArrayOutputStream()
         project.exec {
-            commandLine 'git', 'tag', tagTitle
+            commandLine GIT, TAG, tagTitle
             standardOutput = execOutput
         }
-        logger.warn "The current commit is assigned tag $tagTitle"
+        print "The current commit is assigned tag $tagTitle"
     }
 
-    void pushTagToOrigin(String tagTitle) {
+    private void pushTagToOrigin(String tagTitle) {
         def execOutput = new ByteArrayOutputStream()
         project.exec {
-            commandLine 'git', 'push', 'origin', tagTitle
+            commandLine GIT, PUSH, ORIGIN, tagTitle
             standardOutput = execOutput
         }
     }
 
-    String findLatestTagsInBranch(String nameBranch) {
+    private String findLatestTagsInBranch(String nameBranch) {
         def execOutput = new ByteArrayOutputStream()
         def result = project.exec {
             commandLine 'sh', '-c', "git describe --tags \$(git rev-list --tags --max-count=1 --branches=${nameBranch})"
             standardOutput = execOutput
-            errorOutput = errorOutput
+            errorOutput = new ByteArrayOutputStream()
             ignoreExitValue = true
         }
         if (result.exitValue != 0) {
@@ -84,12 +90,14 @@ class PushTagTask extends DefaultTask {
         return execOutput.toString()
     }
 
-    String findCurrentBranchName() {
+    private String findCurrentBranchName() {
         def execOutput = new ByteArrayOutputStream()
         project.exec {
-            commandLine 'git', 'branch', '--show-current'
+            commandLine GIT, BRANCH, SHOW_CURRENT
             standardOutput = execOutput
+            errorOutput = new ByteArrayOutputStream()
+            ignoreExitValue = true
         }
-        return execOutput.toString()
+        return execOutput.toString().trim()
     }
 }

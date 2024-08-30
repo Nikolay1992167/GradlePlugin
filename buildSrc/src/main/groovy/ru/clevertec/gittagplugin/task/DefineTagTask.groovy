@@ -4,6 +4,13 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import ru.clevertec.gittagplugin.exception.UncommittedChangesException
 
+import static ru.clevertec.gittagplugin.util.Constants.DESCRIBE
+import static ru.clevertec.gittagplugin.util.Constants.DIFF
+import static ru.clevertec.gittagplugin.util.Constants.EXACT_MATCH
+import static ru.clevertec.gittagplugin.util.Constants.GIT
+import static ru.clevertec.gittagplugin.util.Constants.TAG
+import static ru.clevertec.gittagplugin.util.Constants.TAGS
+
 class DefineTagTask extends DefaultTask {
 
     @TaskAction
@@ -20,33 +27,27 @@ class DefineTagTask extends DefaultTask {
         }
         if (tagVersion.empty) {
             println "Tag is not exist!"
-            project.extensions.add('tag', "")
+            project.extensions.add(TAG, "")
         } else {
             println tagVersion
-            project.extensions.add('tag', tagVersion)
+            project.extensions.add(TAG, tagVersion)
         }
     }
 
     private String findCurrentTagVersion() {
-        def execOutput = new ByteArrayOutputStream()
-        def result = project.exec {
-            commandLine 'git', 'describe', '--exact-match', '--tags'
-            standardOutput = execOutput
-            errorOutput = errorOutput
-            ignoreExitValue = true
-        }
-        if (result.exitValue != 0) {
-            return ""
-        }
-        return execOutput.toString()
+        return executeGitCommand(GIT, DESCRIBE, EXACT_MATCH, TAGS)
     }
 
     private String findUncommittedChanges() {
+        return executeGitCommand(GIT, DIFF)
+    }
+
+    private String executeGitCommand(String... command) {
         def execOutput = new ByteArrayOutputStream()
         def result = project.exec {
-            commandLine 'git', 'diff'
+            commandLine command
             standardOutput = execOutput
-            errorOutput = errorOutput
+            errorOutput = new ByteArrayOutputStream()
             ignoreExitValue = true
         }
         if (result.exitValue != 0) {

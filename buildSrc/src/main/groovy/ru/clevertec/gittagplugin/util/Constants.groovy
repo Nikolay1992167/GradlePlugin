@@ -11,22 +11,18 @@ Git Tag Plugin from Nikolay Minich!
     def PUSH_TAG = 'pushTag'
     def DEFINE_TAG = "defineTag";
     def CHECK_INSTALL_GIT = 'checkInstallGit';
-
     def DEFAULT_TAG_VERSION = 'v0.1'
     def RC = '-rc'
     def SNAPSHOT = '-SNAPSHOT'
-
     def GIT = 'git'
-    def VERSION = 'version'
+    def VERSION = '--version'
     def DESCRIBE = 'describe'
     def TAG = 'tag'
     def TAGS = '--tags'
-    def ABBREV = '--abbrev='
     def BRANCH = 'branch'
     def SHOW_CURRENT = '--show-current'
     def PUSH = 'push'
     def ORIGIN = 'origin'
     def DIFF = 'diff'
-    def LIST = '-l'
-    def SORT  = '--sort='
+    def EXACT_MATCH = '--exact-match'
 }
