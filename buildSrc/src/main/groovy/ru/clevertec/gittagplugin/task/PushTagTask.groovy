@@ -26,23 +26,28 @@ class PushTagTask extends DefaultTask {
         def tagFromDefineTagTask = project.extensions.getByName(TAG).toString()
 
         if (tagFromDefineTagTask.empty) {
-            def latestTagVersion = findLatestTagsInBranch(branchName)
-            handleTag(branchName, latestTagVersion)
+
+            if (findGitTags().isEmpty()) {
+                def tagTitle = noTagService.createTagName(branchName, tagFromDefineTagTask)
+                pushTagToLocal(tagTitle)
+                pushTagToOrigin(tagTitle)
+            } else {
+                if (branchName.equalsIgnoreCase("master")) {
+                    def latestTag = findLatestTagsInBranch(branchName)
+                    def tagTitle = existTagService.createTagName(branchName, latestTag)
+                    pushTagToLocal(tagTitle)
+                    pushTagToOrigin(tagTitle)
+                } else {
+                    def latestTagVersion = findLatestIncrementTag()
+                    def preliminaryTag = setPostfix(latestTagVersion, branchName)
+                    def fixedTag = updateMajorVersionIfNotMaster(branchName, preliminaryTag)
+                    def tagTitle = existTagService.createTagName(branchName, fixedTag)
+                    pushTagToLocal(tagTitle)
+                    pushTagToOrigin(tagTitle)
+                }
+            }
         } else {
             print tagFromDefineTagTask
-        }
-    }
-
-    private void handleTag(String branchName, String latestTagVersion) {
-        if (latestTagVersion.empty) {
-            def tagTitle = noTagService.createTagName(branchName, latestTagVersion)
-            pushTagToLocal(tagTitle)
-            pushTagToOrigin(tagTitle)
-        } else {
-            def fixedTag = updateMajorVersionIfNotMaster(branchName, latestTagVersion)
-            def tagTitle = existTagService.createTagName(branchName, fixedTag)
-            pushTagToLocal(tagTitle)
-            pushTagToOrigin(tagTitle)
         }
     }
 
@@ -68,7 +73,6 @@ class PushTagTask extends DefaultTask {
                 latestTag = tag;
             }
         }
-
         return latestTag;
     }
 
@@ -83,8 +87,23 @@ class PushTagTask extends DefaultTask {
         if (result.exitValue != 0) {
             return Collections.emptyList()
         }
-        return execOutput.toString().trim().split('\n').toList()
+        def tags = execOutput.toString().trim().split('\n').toList()
+        return tags.findAll {it.trim()}
     }
+
+//    private List<String> findGitTags() {
+//        def execOutput = new ByteArrayOutputStream()
+//        def result = project.exec {
+//            commandLine GIT, TAG
+//            standardOutput = execOutput
+//            errorOutput = new ByteArrayOutputStream()
+//            ignoreExitValue = true
+//        }
+//        if (result.exitValue != 0) {
+//            return Collections.emptyList()
+//        }
+//        return execOutput.toString().trim().split('\n').toList()
+//    }
 
     private static int extractMajorVersion(String tag) {
         Pattern pattern = Pattern.compile("v(\\d+)\\.\\d+");
@@ -116,6 +135,19 @@ class PushTagTask extends DefaultTask {
         }
     }
 
+    private static String setPostfix(String latestTagVersion, String branchName) {
+        String postfix = ""
+
+        if (branchName.equalsIgnoreCase("stage")) {
+            postfix = "-rc"
+        } else if (!branchName.equalsIgnoreCase("master") &&
+                !branchName.equalsIgnoreCase("dev") &&
+                !branchName.equalsIgnoreCase("qa")) {
+            postfix = "-SNAPSHOT"
+        }
+        return latestTagVersion + postfix
+    }
+
     private String findLatestTagsInBranch(String nameBranch) {
         def execOutput = new ByteArrayOutputStream()
         def result = project.exec {
@@ -128,6 +160,33 @@ class PushTagTask extends DefaultTask {
             return ""
         }
         return execOutput.toString()
+    }
+
+    private String findLatestIncrementTag() {
+        def execOutput = new ByteArrayOutputStream()
+        def result = project.exec {
+            commandLine 'sh', '-c', "git tag --list 'v*'"
+            standardOutput = execOutput
+            errorOutput = new ByteArrayOutputStream()
+            ignoreExitValue = true
+        }
+        if (result.exitValue != 0) {
+            return ""
+        }
+
+        def tags = execOutput.toString().trim().split('\n')
+        def incrementalTags = tags.findAll { it ==~ /v\d+\.\d+$/ }
+        if (incrementalTags.isEmpty()) {
+            return ""
+        }
+
+        incrementalTags.sort { a, b ->
+            def (aMajor, aMinor) = a.replace("v", "").split("\\.").collect { it.toInteger() }
+            def (bMajor, bMinor) = b.replace("v", "").split("\\.").collect { it.toInteger() }
+            return aMajor <=> bMajor ?: aMinor <=> bMinor
+        }
+
+        return incrementalTags.last()
     }
 
     private String findCurrentBranchName() {
