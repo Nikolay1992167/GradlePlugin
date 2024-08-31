@@ -70,14 +70,14 @@ class PushTagTask extends DefaultTask {
     private String findLatestTagMajorVersion() {
         List<String> tags = findGitTags()
 
-        int maxMajorVersion = -1;
-        String latestTag = "";
+        int maxMajorVersion = -1
+        String latestTag = ""
 
         for (String tag : tags) {
-            int majorVersion = extractMajorVersion(tag);
+            int majorVersion = extractMajorVersion(tag)
             if (majorVersion > maxMajorVersion) {
-                maxMajorVersion = majorVersion;
-                latestTag = tag;
+                maxMajorVersion = majorVersion
+                latestTag = tag
             }
         }
         return latestTag
@@ -102,7 +102,7 @@ class PushTagTask extends DefaultTask {
     }
 
     private static String setMajorVersion(String tag, Integer majorVersion) {
-        return tag.replaceAll("v\\d+\\.\\d+", "v" + majorVersion + ".0");
+        return tag.replaceAll("v\\d+\\.\\d+", "v" + majorVersion + ".0")
     }
 
     private void pushTagVersion(String tagTitle) {
