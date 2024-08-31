@@ -1,8 +1,10 @@
 package ru.clevertec.gittagplugin.task
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 import ru.clevertec.gittagplugin.exception.UncommittedChangesException
+import ru.clevertec.gittagplugin.service.ProcessTagService
 
 import static ru.clevertec.gittagplugin.util.Constants.DESCRIBE
 import static ru.clevertec.gittagplugin.util.Constants.DIFF
@@ -12,6 +14,9 @@ import static ru.clevertec.gittagplugin.util.Constants.TAG
 import static ru.clevertec.gittagplugin.util.Constants.TAGS
 
 class DefineTagTask extends DefaultTask {
+
+    @Input
+    def processTagService = new ProcessTagService(project)
 
     @TaskAction
     void defineTag() {
@@ -35,24 +40,24 @@ class DefineTagTask extends DefaultTask {
     }
 
     private String findCurrentTagVersion() {
-        return executeGitCommand(GIT, DESCRIBE, EXACT_MATCH, TAGS)
+        return processTagService.executeGitCommand(GIT, DESCRIBE, EXACT_MATCH, TAGS)
     }
 
     private String findUncommittedChanges() {
-        return executeGitCommand(GIT, DIFF)
+        return processTagService.executeGitCommand(GIT, DIFF)
     }
 
-    private String executeGitCommand(String... command) {
-        def execOutput = new ByteArrayOutputStream()
-        def result = project.exec {
-            commandLine command
-            standardOutput = execOutput
-            errorOutput = new ByteArrayOutputStream()
-            ignoreExitValue = true
-        }
-        if (result.exitValue != 0) {
-            return ""
-        }
-        return execOutput.toString().trim()
-    }
+//    private String executeGitCommand(String... command) {
+//        def execOutput = new ByteArrayOutputStream()
+//        def result = project.exec {
+//            commandLine command
+//            standardOutput = execOutput
+//            errorOutput = new ByteArrayOutputStream()
+//            ignoreExitValue = true
+//        }
+//        if (result.exitValue != 0) {
+//            return ""
+//        }
+//        return execOutput.toString().trim()
+//    }
 }
