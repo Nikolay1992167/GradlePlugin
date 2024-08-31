@@ -80,7 +80,7 @@ class PushTagTask extends DefaultTask {
                 latestTag = tag;
             }
         }
-        return latestTag;
+        return latestTag
     }
 
     private List<String> findGitTags() {

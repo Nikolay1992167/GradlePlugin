@@ -9,8 +9,8 @@ Git Tag Plugin from Nikolay Minich!
 /$
 
     def PUSH_TAG = 'pushTag'
-    def DEFINE_TAG = "defineTag";
-    def CHECK_INSTALL_GIT = 'checkInstallGit';
+    def DEFINE_TAG = "defineTag"
+    def CHECK_INSTALL_GIT = 'checkInstallGit'
     def DEFAULT_TAG_VERSION = 'v0.1'
     def RC = '-rc'
     def SNAPSHOT = '-SNAPSHOT'
