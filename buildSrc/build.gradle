@@ -1,0 +1,29 @@
+plugins {
+    id 'groovy'
+    id 'java-gradle-plugin'
+    id 'maven-publish'
+}
+
+group = 'by.mnp.git-tag-plugin'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    groovyVersion = '4.0.22'
+}
+
+dependencies {
+    implementation "org.apache.groovy:groovy:$groovyVersion"
+}
+
+gradlePlugin {
+    plugins {
+        gitTagPlugin {
+            id = 'git-tag-plugin'
+            implementationClass = 'ru.clevertec.gittagplugin.GitTagPlugin'
+        }
+    }
+}
